@@ -1,5 +1,7 @@
 import logging
 import resend
+import os
+
 from jinja2 import Environment, FileSystemLoader
 from app.core.config import settings
 
@@ -17,13 +19,14 @@ class EmailSender:
         
         self.entorno_jinja = Environment(loader=FileSystemLoader("app/templates"))
 
-    def enviar_reporte(self, datos_analisis: dict) -> None:
+    def enviar_reporte(self, datos_analisis: dict, ruta_pdf: str | None = None) -> None:
         """
         Toma los datos analizados, renderiza el HTML y dispara el correo.
         Si no hay datos, dispara una alerta de texto plano.
         
         **Args:**
-        - **datos_analisis** (dict): El diccionario devuelto por DataAnalyzer.
+        - datos_analisis (dict): El diccionario devuelto por DataAnalyzer.
+        - ruta_pdf (str | None): Ruta local al archivo PDF generado, opcional.
         """
 
         if not datos_analisis.get("hay_datos"):
@@ -45,6 +48,20 @@ class EmailSender:
                 "subject": f"🔥 Tech Job Report: {datos_analisis['total_ofertas']} nuevas ofertas",
                 "html": html_renderizado
             }
+
+            if ruta_pdf:
+                try:
+                    with open(ruta_pdf, "rb") as f:
+                        contenido_pdf = f.read()
+                        
+                    parametros_email["attachments"] = [
+                        {
+                            "filename": "Tech_Report_Semanal.pdf",
+                            "content": list(contenido_pdf)
+                        }
+                    ]
+                except IOError as e:
+                    logger.error(f"No se pudo leer el archivo PDF para adjuntar: {e}")
 
             respuesta = resend.Emails.send(parametros_email)
             logger.info(f"¡Reporte enviado exitosamente! ID de Resend: {respuesta.get('id')}")

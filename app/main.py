@@ -3,6 +3,7 @@ import sys
 from app.services.db_client import DatabaseClient
 from app.services.analyzer import DataAnalyzer
 from app.services.email_sender import EmailSender
+from app.services.pdf_generator import PDFGenerator
 
 logging.basicConfig(
     level=logging.INFO,
@@ -21,10 +22,11 @@ def main() -> None:
     try:
         db_client = DatabaseClient()
         analyzer = DataAnalyzer()
+        pdf_generator = PDFGenerator()
         email_sender = EmailSender()
 
         logger.info("--- PASO 1: Extrayendo datos ---")
-        datos_crudos = db_client.obtener_ofertas_recientes(dias=30)
+        datos_crudos = db_client.obtener_ofertas_recientes(dias=7)
 
         logger.info("--- PASO 2: Analizando datos ---")
         datos_analizados = analyzer.generar_estadisticas(datos_crudos)
@@ -32,8 +34,14 @@ def main() -> None:
         logger.info("--- PASO 2.5: Guardando historial ---")
         db_client.guardar_estadisticas(datos_analizados)
 
-        logger.info("--- PASO 3: Enviando reporte ---")
-        email_sender.enviar_reporte(datos_analizados)
+        logger.info("--- PASO 3: Generando reporte PDF ---")
+        ruta_pdf = pdf_generator.generar_reporte(datos_analizados)
+
+        logger.info("--- PASO 4: Enviando reporte ---")
+        email_sender.enviar_reporte(datos_analizados, ruta_pdf)
+
+        if ruta_pdf and __import__("os").path.exists(ruta_pdf):
+            __import__("os").remove(ruta_pdf)
 
         logger.info("✅ Pipeline ejecutado con éxito. ¡Misión cumplida!")
 

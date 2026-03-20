@@ -118,7 +118,7 @@
                 {% for job in dream_jobs %}
                 <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 15px; margin-bottom: 10px;">
                     <h3 style="margin: 0 0 5px 0; font-size: 16px; color: #1e40af;">{{ job.titulo }}</h3>
-                    <p style="margin: 0 0 8px 0; font-size: 14px; color: #475569;">🏢 {{ job.empresa }} | 💰 Salario: {{ job.salario }}</p>
+                    <p style="margin: 0 0 8px 0; font-size: 14px; color: #475569;">🏢 Nombre de la empresa: {{ job.empresa }}</p>
                     <a href="{{ job.enlace }}" style="display: inline-block; background-color: #2563eb; color: #ffffff; text-decoration: none; padding: 6px 12px; border-radius: 4px; font-size: 13px; font-weight: bold; margin-top: 5px;">Ver Oferta</a>
                 </div>
                 {% endfor %}
