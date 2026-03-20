@@ -1,0 +1,32 @@
+name: Tech Job Reporter Automático
+
+on:
+  schedule:
+    - cron: '0 12 * * 5'
+  workflow_dispatch: 
+
+jobs:
+  run-etl-pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar el código del repositorio
+        uses: actions/checkout@v4
+
+      - name: Instalar 'uv' (Gestor de paquetes)
+        uses: astral-sh/setup-uv@v2
+
+      - name: Configurar Python
+        run: uv python install 3.12 
+
+      - name: Instalar dependencias
+        run: uv sync
+
+      - name: Ejecutar el motor ETL
+        env:
+            SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+            SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+            RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+            EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
+            EMAIL_RECIPIENT: ${{ secrets.EMAIL_RECIPIENT }}
+        run: uv run python -m app.main

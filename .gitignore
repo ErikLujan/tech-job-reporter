@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Logs
+*.log
+
+# Entornos y Secretos
+.venv/
+.env
+
+# Editores
+.vscode/
+.idea/
+
+# Sistema Operativo
+.DS_Store
+Thumbs.db
