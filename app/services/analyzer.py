@@ -25,6 +25,7 @@ class DataAnalyzer:
             return {
                 "total_ofertas": 0,
                 "top_tecnologias": [],
+                "dream_jobs": [],
                 "hay_datos": False
             }
 
@@ -32,12 +33,19 @@ class DataAnalyzer:
             df = pd.DataFrame(datos_crudos)
             total_ofertas = len(df)
 
+            patron_busqueda = 'python|backend|fastapi|flask'
+
+            mask_dream = df['titulo'].str.contains(patron_busqueda, case=False, na=False)
+            df_dream_jobs = df[mask_dream].head(5)
+
+            dream_jobs = df_dream_jobs[['titulo', 'empresa', 'enlace', 'salario']].fillna('No especificado').to_dict('records')
+            logger.info(f"Se encontraron {len(dream_jobs)} Dream Jobs destacados.")
+
             df['tecnologias_normalizadas'] = df['tecnologias_normalizadas'].apply(
                 lambda x: x if isinstance(x, list) else []
             )
 
             df_techs = df.explode('tecnologias_normalizadas')
-
             df_techs = df_techs.dropna(subset=['tecnologias_normalizadas'])
             df_techs = df_techs[df_techs['tecnologias_normalizadas'].str.strip().astype(bool)]
 
@@ -53,6 +61,7 @@ class DataAnalyzer:
             return {
                 "total_ofertas": total_ofertas,
                 "top_tecnologias": top_tecnologias,
+                "dream_jobs": dream_jobs,
                 "hay_datos": True
             }
 
@@ -62,5 +71,6 @@ class DataAnalyzer:
             return {
                 "total_ofertas": 0,
                 "top_tecnologias": [],
+                "dream_jobs": [],
                 "hay_datos": False
             }
