@@ -56,3 +56,29 @@ class DatabaseClient:
         except Exception as e:
             logger.error(f"Fallo al realizar la consulta en Supabase: {e}")
             return []
+
+    def guardar_estadisticas(self, datos_analisis: dict) -> None:
+        """
+        Guarda las métricas del reporte semanal en la base de datos 
+        para permitir análisis histórico en el futuro.
+
+        **Args:**
+            datos_analisis (dict): Diccionario generado por DataAnalyzer con las  métricas de la semana. Debe contener al menos  las claves 'hay_datos', 'total_ofertas' y 'top_tecnologias'.
+
+        **Returns**: None
+        """
+        if not datos_analisis.get("hay_datos"):
+            logger.info("No hay datos nuevos para guardar en el historial.")
+            return
+
+        try:
+            payload = {
+                "total_ofertas": datos_analisis["total_ofertas"],
+                "top_tecnologias": datos_analisis["top_tecnologias"]
+            }
+            
+            self.cliente.table("estadisticas_semanales").insert(payload).execute()
+            logger.info("Estadísticas semanales guardadas en Supabase exitosamente.")
+            
+        except Exception as e:
+            logger.error(f"Fallo no crítico al guardar el historial: {e}")

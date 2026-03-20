@@ -29,6 +29,9 @@ def main() -> None:
         logger.info("--- PASO 2: Analizando datos ---")
         datos_analizados = analyzer.generar_estadisticas(datos_crudos)
 
+        logger.info("--- PASO 2.5: Guardando historial ---")
+        db_client.guardar_estadisticas(datos_analizados)
+
         logger.info("--- PASO 3: Enviando reporte ---")
         email_sender.enviar_reporte(datos_analizados)
 
