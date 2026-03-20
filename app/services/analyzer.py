@@ -11,15 +11,15 @@ class DataAnalyzer:
 
     def generar_estadisticas(self, datos_crudos: list[dict]) -> dict:
         """
-        Toma una lista de ofertas laborales y calcula métricas clave.
+        Toma una lista de ofertas laborales y calcula métricas clave,
+        además de filtrar las ofertas destacadas (Dream Jobs).
 
         **Args:**
         - **datos_crudos** (list[dict]): Los datos tal cual vienen de Supabase.
 
         **Returns:**
-        - **dict**: Un diccionario con el total de ofertas, el top de tecnologías y un flag booleano.
+        - **dict**: Un diccionario con el total de ofertas, top de tecnologías, ofertas destacadas y un flag booleano.
         """
-
         if not datos_crudos:
             logger.warning("No hay datos para analizar esta semana.")
             return {
@@ -33,14 +33,16 @@ class DataAnalyzer:
             df = pd.DataFrame(datos_crudos)
             total_ofertas = len(df)
 
+            # --- Motor de búsqueda de Dream Jobs ---
             patron_busqueda = 'python|backend|fastapi|flask'
-
             mask_dream = df['titulo'].str.contains(patron_busqueda, case=False, na=False)
             df_dream_jobs = df[mask_dream].head(5)
-
+            
             dream_jobs = df_dream_jobs[['titulo', 'empresa', 'enlace', 'salario']].fillna('No especificado').to_dict('records')
             logger.info(f"Se encontraron {len(dream_jobs)} Dream Jobs destacados.")
+            # ---------------------------------------
 
+            # Limpieza y preparación para el Top de tecnologías
             df['tecnologias_normalizadas'] = df['tecnologias_normalizadas'].apply(
                 lambda x: x if isinstance(x, list) else []
             )
@@ -56,7 +58,7 @@ class DataAnalyzer:
                 for nombre, cantidad in top_10.items()
             ]
 
-            logger.info(f"Análisis completado: {total_ofertas} ofertas procesadas. Top 1: {top_tecnologias[0]['nombre'] if top_tecnologias else 'N/A'}")
+            logger.info(f"Análisis completado: {total_ofertas} ofertas procesadas.")
 
             return {
                 "total_ofertas": total_ofertas,
@@ -67,7 +69,6 @@ class DataAnalyzer:
 
         except Exception as e:
             logger.error(f"Error crítico al procesar los datos con Pandas: {e}")
-
             return {
                 "total_ofertas": 0,
                 "top_tecnologias": [],
