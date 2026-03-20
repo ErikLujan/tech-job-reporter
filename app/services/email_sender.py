@@ -35,7 +35,8 @@ class EmailSender:
             template = self.entorno_jinja.get_template("email_body.html")
             html_renderizado = template.render(
                 total_ofertas=datos_analisis["total_ofertas"],
-                top_tecnologias=datos_analisis["top_tecnologias"]
+                top_tecnologias=datos_analisis["top_tecnologias"],
+                dream_jobs=datos_analisis.get("dream_jobs", [])
             )
 
             parametros_email = {
