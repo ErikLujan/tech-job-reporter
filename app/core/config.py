@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     EMAIL_SENDER: str
     EMAIL_RECIPIENT: str
 
+    # API key de Gemini
+    GEMINI_API_KEY: str
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
 settings = Settings()
