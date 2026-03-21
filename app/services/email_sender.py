@@ -39,7 +39,8 @@ class EmailSender:
             html_renderizado = template.render(
                 total_ofertas=datos_analisis["total_ofertas"],
                 top_tecnologias=datos_analisis["top_tecnologias"],
-                dream_jobs=datos_analisis.get("dream_jobs", [])
+                dream_jobs=datos_analisis.get("dream_jobs", []),
+                ai_summary=datos_analisis.get("ai_summary", "")
             )
 
             parametros_email = {

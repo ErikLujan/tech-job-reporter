@@ -4,6 +4,7 @@ from app.services.db_client import DatabaseClient
 from app.services.analyzer import DataAnalyzer
 from app.services.email_sender import EmailSender
 from app.services.pdf_generator import PDFGenerator
+from app.services.ai_client import AIClient
 
 logging.basicConfig(
     level=logging.INFO,
@@ -24,6 +25,7 @@ def main() -> None:
         analyzer = DataAnalyzer()
         pdf_generator = PDFGenerator()
         email_sender = EmailSender()
+        ai_client = AIClient()
 
         logger.info("--- PASO 1: Extrayendo datos ---")
         datos_crudos = db_client.obtener_ofertas_recientes(dias=7)
@@ -33,6 +35,10 @@ def main() -> None:
 
         logger.info("--- PASO 2.5: Guardando historial ---")
         db_client.guardar_estadisticas(datos_analizados)
+
+        logger.info("--- PASO 2.75: Consultando a la IA ---")
+        resumen_ia = ai_client.generar_resumen(datos_analizados)
+        datos_analizados["ai_summary"] = resumen_ia
 
         logger.info("--- PASO 3: Generando reporte PDF ---")
         ruta_pdf = pdf_generator.generar_reporte(datos_analizados)

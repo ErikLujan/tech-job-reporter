@@ -112,6 +112,15 @@
                 <p>Se han analizado un total de <strong>{{ total_ofertas }} nuevas ofertas laborales</strong> en los últimos 7 días.</p>
             </div>
 
+            {% if ai_summary %}
+            <div style="background-color: #f0fdf4; border-left: 4px solid #16a34a; padding: 15px; margin-bottom: 25px; border-radius: 4px;">
+                <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #166534;">🤖 AI Market Insight</h3>
+                <p style="margin: 0; font-size: 14px; color: #152828; line-height: 1.5; font-style: italic;">
+                    "{{ ai_summary }}"
+                </p>
+            </div>
+            {% endif %}
+
             {% if dream_jobs %}
             <h2 style="font-size: 18px; color: #334155; margin-bottom: 15px;">⭐ Dream Jobs Destacados</h2>
             <div style="margin-bottom: 25px;">
