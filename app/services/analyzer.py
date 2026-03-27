@@ -9,7 +9,7 @@ class DataAnalyzer:
     utilizando Pandas para generar estadísticas y resúmenes estructurados.
     """
 
-    def generar_estadisticas(self, datos_crudos: list[dict]) -> dict:
+    def generar_estadisticas(self, datos_crudos: list[dict], patron_busqueda: str) -> dict:
         """
         Toma una lista de ofertas laborales y calcula métricas clave,
         además de filtrar las ofertas destacadas (Dream Jobs).
@@ -34,13 +34,11 @@ class DataAnalyzer:
             total_ofertas = len(df)
 
             # --- Motor de búsqueda de Dream Jobs ---
-            patron_busqueda = 'python|backend|fastapi|flask'
             mask_dream = df['titulo'].str.contains(patron_busqueda, case=False, na=False)
             df_dream_jobs = df[mask_dream].head(5)
             
             dream_jobs = df_dream_jobs[['titulo', 'empresa', 'enlace', 'salario']].fillna('No especificado').to_dict('records')
             logger.info(f"Se encontraron {len(dream_jobs)} Dream Jobs destacados.")
-            # ---------------------------------------
 
             # Limpieza y preparación para el Top de tecnologías
             df['tecnologias_normalizadas'] = df['tecnologias_normalizadas'].apply(

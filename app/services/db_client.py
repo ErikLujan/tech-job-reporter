@@ -82,3 +82,16 @@ class DatabaseClient:
             
         except Exception as e:
             logger.error(f"Fallo no crítico al guardar el historial: {e}")
+
+    def obtener_suscriptores(self) -> list[dict]:
+        """
+        Obtiene la lista de suscriptores activos desde Supabase.
+        """
+        try:
+            respuesta = self.cliente.table('suscriptores').select('*').eq('activo', True).execute()
+            suscriptores = respuesta.data
+            logger.info(f"Se encontraron {len(suscriptores)} suscriptores activos.")
+            return suscriptores
+        except Exception as e:
+            logger.error(f"Error al obtener suscriptores de Supabase: {e}")
+            return []
