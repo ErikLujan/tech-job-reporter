@@ -29,4 +29,5 @@ jobs:
             RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
             EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
             EMAIL_RECIPIENT: ${{ secrets.EMAIL_RECIPIENT }}
+            GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: uv run python -m app.main
