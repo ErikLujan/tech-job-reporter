@@ -246,19 +246,6 @@ Para que el GitHub Action se ejecute correctamente, los siguientes secretos debe
 
 ---
 
-## Calidad de código
-
-**Herramientas**
-- **ruff**: Linting y formateo
-- **mypy**: Type checking estricto (`--strict`)
-- **pytest**: Tests unitarios con mocks
-- **bandit**: Análisis de seguridad estático
-- **pip-audit**: Auditoría de dependencias
-
-**Cobertura de tests**: 88% (supera el 80% requerido)
-
----
-
 ## Cómo contribuir
 
 1. Fork del repositorio
