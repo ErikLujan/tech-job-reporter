@@ -1,7 +1,12 @@
-import pandas as pd
 import logging
+from typing import cast
+
+import pandas as pd
+
+from app.core.config import DREAM_JOBS_LIMIT, TOP_TECHNOLOGIES_LIMIT
 
 logger = logging.getLogger(__name__)
+
 
 class DataAnalyzer:
     """
@@ -9,7 +14,9 @@ class DataAnalyzer:
     utilizando Pandas para generar estadísticas y resúmenes estructurados.
     """
 
-    def generar_estadisticas(self, datos_crudos: list[dict], patron_busqueda: str) -> dict:
+    def generar_estadisticas(
+        self, datos_crudos: list[dict[str, object]], patron_busqueda: str
+    ) -> dict[str, object]:
         """
         Toma una lista de ofertas laborales y calcula métricas clave,
         además de filtrar las ofertas destacadas (Dream Jobs).
@@ -26,7 +33,7 @@ class DataAnalyzer:
                 "total_ofertas": 0,
                 "top_tecnologias": [],
                 "dream_jobs": [],
-                "hay_datos": False
+                "hay_datos": False,
             }
 
         try:
@@ -34,25 +41,37 @@ class DataAnalyzer:
             total_ofertas = len(df)
 
             # --- Motor de búsqueda de Dream Jobs ---
-            mask_dream = df['titulo'].str.contains(patron_busqueda, case=False, na=False)
-            df_dream_jobs = df[mask_dream].head(5)
-            
-            dream_jobs = df_dream_jobs[['titulo', 'empresa', 'enlace', 'salario']].fillna('No especificado').to_dict('records')
+            mask_dream = df["titulo"].str.contains(
+                patron_busqueda, case=False, na=False
+            )
+            df_dream_jobs = df[mask_dream].head(DREAM_JOBS_LIMIT)
+
+            dream_jobs = (
+                df_dream_jobs[["titulo", "empresa", "enlace", "salario"]]
+                .fillna("No especificado")
+                .to_dict("records")
+            )
             logger.info(f"Se encontraron {len(dream_jobs)} Dream Jobs destacados.")
 
             # Limpieza y preparación para el Top de tecnologías
-            df['tecnologias_normalizadas'] = df['tecnologias_normalizadas'].apply(
+            df["tecnologias_normalizadas"] = df["tecnologias_normalizadas"].apply(
                 lambda x: x if isinstance(x, list) else []
             )
 
-            df_techs = df.explode('tecnologias_normalizadas')
-            df_techs = df_techs.dropna(subset=['tecnologias_normalizadas'])
-            df_techs = df_techs[df_techs['tecnologias_normalizadas'].str.strip().astype(bool)]
+            df_techs = df.explode("tecnologias_normalizadas")
+            df_techs = df_techs.dropna(subset=["tecnologias_normalizadas"])
+            df_techs = df_techs[
+                df_techs["tecnologias_normalizadas"].str.strip().astype(bool)
+            ]
 
-            top_10 = df_techs['tecnologias_normalizadas'].value_counts().head(10)
+            top_10 = (
+                df_techs["tecnologias_normalizadas"]
+                .value_counts()
+                .head(TOP_TECHNOLOGIES_LIMIT)
+            )
 
             top_tecnologias = [
-                {"nombre": nombre.upper(), "cantidad": int(cantidad)}
+                {"nombre": cast(str, nombre).upper(), "cantidad": int(cantidad)}
                 for nombre, cantidad in top_10.items()
             ]
 
@@ -62,14 +81,14 @@ class DataAnalyzer:
                 "total_ofertas": total_ofertas,
                 "top_tecnologias": top_tecnologias,
                 "dream_jobs": dream_jobs,
-                "hay_datos": True
+                "hay_datos": True,
             }
 
-        except Exception as e:
-            logger.error(f"Error crítico al procesar los datos con Pandas: {e}")
+        except Exception as e:  # noqa: BLE001 — degradación elegante: devuelve resultado vacío ante cualquier error
+            logger.error("Error crítico al procesar los datos con Pandas: %s", e)
             return {
                 "total_ofertas": 0,
                 "top_tecnologias": [],
                 "dream_jobs": [],
-                "hay_datos": False
+                "hay_datos": False,
             }

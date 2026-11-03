@@ -1,26 +1,28 @@
 import logging
-import sys
 import os
-from app.services.db_client import DatabaseClient
+import sys
+
+from app.services.ai_client import AIClient
 from app.services.analyzer import DataAnalyzer
+from app.services.db_client import DatabaseClient
 from app.services.email_sender import EmailSender
 from app.services.pdf_generator import PDFGenerator
-from app.services.ai_client import AIClient
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout)]
+    handlers=[logging.StreamHandler(sys.stdout)],
 )
 logger = logging.getLogger(__name__)
+
 
 def main() -> None:
     """
     Función orquestadora del pipeline ETL (Extract, Transform, Load/Send).
-    Coordina los servicios para extraer datos, analizarlos y enviar un reporte 
+    Coordina los servicios para extraer datos, analizarlos y enviar un reporte
     personalizado a cada suscriptor activo.
     """
-    logger.info("🚀 Iniciando el pipeline multi-usuario de Tech Job Reporter...")
+    logger.info("Iniciando el pipeline multi-usuario de Tech Job Reporter...")
 
     try:
         db_client = DatabaseClient()
@@ -33,25 +35,31 @@ def main() -> None:
         datos_crudos = db_client.obtener_ofertas_recientes(dias=7)
 
         if not datos_crudos:
-            logger.warning("No hay datos nuevos en la base de datos. Abortando ejecución.")
+            logger.warning(
+                "No hay datos nuevos en la base de datos. Abortando ejecución."
+            )
             return
 
         logger.info("--- PASO 2: Obteniendo lista de suscriptores activos ---")
         suscriptores = db_client.obtener_suscriptores()
 
         if not suscriptores:
-            logger.warning("No hay suscriptores activos para enviar reportes. Abortando ejecución.")
+            logger.warning(
+                "No hay suscriptores activos para enviar reportes. Abortando ejecución."
+            )
             return
 
-        # --- EL BUCLE MAESTRO: Iteramos sobre cada usuario ---
         for usuario in suscriptores:
-            logger.info(f"\n--- 👤 Procesando reporte para: {usuario['nombre']} ({usuario['email']}) ---")
-            
+            email = str(usuario["email"])
+            nombre = str(usuario["nombre"])
+            preferencias = str(usuario["preferencias_busqueda"])
+
+            logger.info(f"\n--- Procesando reporte para: {nombre} ({email}) ---")
+
             try:
                 logger.info("  -> Analizando datos según preferencias...")
                 datos_analizados = analyzer.generar_estadisticas(
-                    datos_crudos, 
-                    patron_busqueda=usuario['preferencias_busqueda']
+                    datos_crudos, patron_busqueda=preferencias
                 )
 
                 logger.info("  -> Guardando historial de métricas...")
@@ -66,27 +74,29 @@ def main() -> None:
 
                 logger.info("  -> Enviando correo personalizado...")
                 email_sender.enviar_reporte(
-                    datos_analisis=datos_analizados, 
-                    destinatario=usuario['email'],
-                    nombre_usuario=usuario['nombre'],
-                    ruta_pdf=ruta_pdf
+                    datos_analisis=datos_analizados,
+                    destinatario=email,
+                    nombre_usuario=nombre,
+                    ruta_pdf=ruta_pdf,
                 )
 
-            except Exception as e:
-                # Si este usuario falla (por ej. correo rebotado), logueamos el error y PASAMOS AL SIGUIENTE
-                logger.error(f"  ❌ Fallo aisaldo al procesar al usuario {usuario['nombre']}: {e}")
-                continue 
+            except Exception:
+                logger.error(f"  Fallo aislado al procesar al usuario {nombre}")
+                continue
 
             finally:
                 # Esto se ejecuta siempre, haya fallado o no, para limpiar la basura
-                if 'ruta_pdf' in locals() and ruta_pdf and os.path.exists(ruta_pdf):
+                if "ruta_pdf" in locals() and ruta_pdf and os.path.exists(ruta_pdf):
                     os.remove(ruta_pdf)
 
-        logger.info("\n✅ Pipeline ejecutado con éxito para todos los suscriptores. ¡Misión cumplida!")
+        logger.info(
+            "\nPipeline ejecutado con éxito para todos los suscriptores. Misión cumplida."
+        )
 
     except Exception as e:
-        logger.critical(f"❌ El pipeline falló catastróficamente: {e}", exc_info=True)
+        logger.critical("El pipeline falló catastróficamente: %s", e, exc_info=True)
         sys.exit(1)
+
 
 if __name__ == "__main__":
     main()

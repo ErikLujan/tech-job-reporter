@@ -4,6 +4,19 @@ Pipeline ETL (Extract, Transform, Load) automatizado y serverless construido con
 
 ---
 
+## Cron / Schedule
+
+El pipeline se ejecuta automáticamente vía GitHub Actions con la siguiente programación:
+
+- **Cron expression:** `0 12 * * 5`
+- **Significado:** Cada viernes a las 12:00 UTC
+- **Zona horaria Argentina (UTC-3):** Viernes 9:00 AM
+- **Desencadenador manual:** Disponible vía `workflow_dispatch` en la pestaña Actions de GitHub
+
+> **Nota:** GitHub Actions ejecuta los cron jobs en UTC. La expresión `0 12 * * 5` se traduce a viernes 12:00 UTC, que corresponde a las 9:00 AM en Argentina (UTC-3) durante el horario estándar.
+
+---
+
 ## Descripción general
 
 Este proyecto funciona como el motor analítico de un ecosistema de scraping de ofertas laborales, operando bajo una arquitectura multi-usuario (SaaS). Ejecutándose en piloto automático a través de GitHub Actions, el sistema consulta la base de datos en busca de nuevas ofertas ingresadas en los últimos 7 días. Luego, recupera una lista de suscriptores activos, procesa las tecnologías para identificar tendencias del mercado (Top 10), filtra las ofertas ideales según las preferencias individuales de cada usuario, utiliza Google Gemini para redactar un resumen ejecutivo y, finalmente, despacha un reporte personalizado con un PDF adjunto directo a la bandeja de entrada de cada suscriptor.
@@ -86,7 +99,7 @@ sequenceDiagram
 
 | Componente | Tecnología |
 |---|---|
-| Lenguaje base | Python 3.12 |
+| Lenguaje base | Python 3.11 |
 | Gestor de dependencias | uv |
 | Extracción (Base de Datos) | Supabase Python Client |
 | Transformación (Análisis) | Pandas |
@@ -179,13 +192,13 @@ EMAIL_SENDER=onboarding@resend.dev
 
 ### 4. Ejecutar el pipeline
 
-Asegúrate de tener al menos un registro en la tabla `suscriptores` de tu base de datos y prueba el flujo completo:
+Asegurate de tener al menos un registro en la tabla `suscriptores` de tu base de datos y prueba el flujo completo:
 
 ```bash
 uv run python -m app.main
 ```
 
-Revisa tu terminal para seguir el rastro de logs y confirma la recepción del reporte en tu bandeja de entrada.
+Revisá tu terminal para seguir el rastro de logs y confirma la recepción del reporte en tu bandeja de entrada.
 
 ---
 
@@ -199,4 +212,57 @@ Para que el GitHub Action se ejecute correctamente, los siguientes secretos debe
 | `SUPABASE_KEY` | Clave anónima (`anon_key`) con permisos de lectura. |
 | `RESEND_API_KEY` | Token de acceso de la API de Resend. |
 | `GEMINI_API_KEY` | Token de acceso a la API de Google Generative Language. |
-| `EMAIL_SENDER` | Dirección del remitente validado (ej. `reportes@tudominio.com`). |
+| `EMAIL_SENDER` | **Dominio verificado en Resend** (ej. `reportes@tudominio.com`). El remitente debe ser un dominio verificado en Resend o los correos rebotarán. `onboarding@resend.dev` solo funciona para pruebas en la propia cuenta de Resend. |
+
+---
+
+## Calidad de código
+
+**Herramientas**
+- **ruff**: Linting y formateo
+- **mypy**: Type checking estricto (`--strict`)
+- **pytest**: Tests unitarios con mocks
+- **bandit**: Análisis de seguridad estático
+- **pip-audit**: Auditoría de dependencias
+
+**Cobertura de tests**: 88% (supera el 80% requerido)
+
+---
+
+## Seguridad
+
+**Gestión de secretos**
+- Variables de entorno validadas con Pydantic Settings (fail-fast)
+- `.gitignore` protege `.env`, caches, archivos temporales y artefactos de build
+- Sin secretos hardcodeados en código
+
+**Sanitización de salida LLM**
+- Salida de Gemini sanitizada con `bleach` (lista blanca vacía = solo texto plano)
+- Previene XSS/inyección en emails HTML
+
+**Validación de entrada**
+- Validación estricta de payloads antes de insertar en BD
+- Sanitización de adjuntos PDF (bytes, no lista de ints)
+
+---
+
+## Calidad de código
+
+**Herramientas**
+- **ruff**: Linting y formateo
+- **mypy**: Type checking estricto (`--strict`)
+- **pytest**: Tests unitarios con mocks
+- **bandit**: Análisis de seguridad estático
+- **pip-audit**: Auditoría de dependencias
+
+**Cobertura de tests**: 88% (supera el 80% requerido)
+
+---
+
+## Cómo contribuir
+
+1. Fork del repositorio
+2. Crear rama feature (`git checkout -b feature/nueva-funcionalidad`)
+3. Commit changes (`git commit -am 'Agrega nueva funcionalidad'`)
+4. Push a la rama (`git push origin feature/nueva-funcionalidad`)
+5. Crear Pull Request

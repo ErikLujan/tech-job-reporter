@@ -1,6 +1,7 @@
-# Python
+﻿# Python
 __pycache__/
-*.py[oc]
+*.py[cod]
+*.pyo
 build/
 dist/
 wheels/
@@ -8,10 +9,21 @@ wheels/
 
 # Logs
 *.log
+logs/
 
 # Entornos y Secretos
 .venv/
 .env
+.env.*
+
+# Artefactos temporales del ETL
+temp_chart.png
+tech_report.pdf
+
+# Caches de herramientas
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 
 # Editores
 .vscode/
@@ -20,3 +32,12 @@ wheels/
 # Sistema Operativo
 .DS_Store
 Thumbs.db
+
+# Informes de sesión
+FINAL_REPORT.md
+repomix-output.xml
+
+# Configuracion OpenCode
+.opencode/
+opencode.json
+AGENTS.md

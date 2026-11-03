@@ -2,7 +2,7 @@ name: Tech Job Reporter Automático
 
 on:
   schedule:
-    - cron: '0 12 * * 5'
+    - cron: '0 12 * * 5'  # Viernes 12:00 UTC = 9:00 AM Argentina (UTC-3)
   workflow_dispatch: 
 
 jobs:
@@ -17,10 +17,28 @@ jobs:
         uses: astral-sh/setup-uv@v2
 
       - name: Configurar Python
-        run: uv python install 3.12 
+        run: uv python install 3.11 
 
       - name: Instalar dependencias
-        run: uv sync
+        run: uv sync --frozen
+
+      - name: Verificar estilo de código (ruff)
+        run: uv run ruff check .
+
+      - name: Verificar formato (ruff)
+        run: uv run ruff format --check .
+
+      - name: Verificar tipos (mypy)
+        run: uv run mypy --strict app
+
+      - name: Auditoría de dependencias (pip-audit)
+        run: uv run pip-audit
+
+      - name: Análisis de seguridad (bandit)
+        run: uv run bandit -r app
+
+      - name: Ejecutar tests con cobertura
+        run: uv run pytest --cov=app --cov-report=term-missing --cov-fail-under=80
 
       - name: Ejecutar el motor ETL
         env:
@@ -28,6 +46,5 @@ jobs:
             SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
             RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
             EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
-            EMAIL_RECIPIENT: ${{ secrets.EMAIL_RECIPIENT }}
             GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: uv run python -m app.main
